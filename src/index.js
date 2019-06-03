@@ -34,6 +34,7 @@ const isAllTrue = (array, fn) => {
 
         return true;
     } catch (e) {
+        // eslint-disable-next-line no-console
         console.log(e.message);
     }
 }
@@ -72,6 +73,7 @@ const isSomeTrue = (array, fn) => {
 
         return false;
     } catch (e) {
+        // eslint-disable-next-line no-console
         console.log(e.message);
     }
 }
@@ -104,6 +106,7 @@ function returnBadArguments(fn) {
         })
 
     } catch (e) {
+        // eslint-disable-next-line no-console
         console.log(e.message);
     }
 
@@ -127,7 +130,37 @@ function returnBadArguments(fn) {
    - number не является числом (с текстом "number is not a number")
    - какой-либо из аргументов div является нулем (с текстом "division by 0")
  */
-function calculator() {
+const calculator = (number = 0) => {
+    if (isNaN(parseFloat(number)) && !isFinite(number)) {
+        throw new Error('number is not a number');
+    }
+
+    try {
+        let result = {
+            sum: function() { 
+                return [...arguments].reduce((sum, current) => sum + current, number); 
+            },
+            dif: function() { 
+                return [...arguments].reduce((dif, current) => dif - current, number); 
+            },
+            div: function() { 
+                if ([...arguments].indexOf(0) !== -1) {
+                    throw new Error('division by 0');
+                }
+
+                return [...arguments].reduce((div, current) => div / current, number); 
+            },
+            mul: function() { 
+                return [...arguments].reduce((mul, current) => mul * current, number); 
+            }
+        }
+
+        return result;
+    } catch (e) {
+        // eslint-disable-next-line no-console
+        console.log(e.message);
+    }
+
 }
 
 /* При решении задач, пострайтесь использовать отладчик */
