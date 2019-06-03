@@ -34,7 +34,7 @@ const map = (array, fn) => {
  Напишите аналог встроенного метода reduce для работы с массивами
  Посмотрите как работает reduce и повторите это поведение для массива, который будет передан в параметре array
  */
-function reduce(array, fn, initial) {
+const reduce = (array, fn, initial) => {
 
     let [accumulator, i] = initial ? [initial, 0] : [array[0], 1];
 
@@ -77,27 +77,8 @@ const slice = (array, from = 0, to = array.length) => {
     let result = [];
 
     if (from <= array.length && to !== 0) {
-        let newFrom;
-        let newTo;
-
-        // Это плохая практика?
-        // newFrom = (from >= 0) ? from : (from <= -array.length) ? 0 : array.length + from;
-
-        if (from >= 0) {
-            newFrom = from;
-        } else if (from <= -array.length) {
-            newFrom = 0;
-        } else {
-            newFrom = array.length + from;
-        }
-
-        if (to > 0 && to <= array.length) {
-            newTo = to;
-        } else if (to > array.length) {
-            newTo = array.length;
-        } else {
-            newTo = array.length + to;
-        }
+        let newFrom = (from >= 0) ? from : (from <= -array.length) ? 0 : array.length + from; // eslint-disable-line no-nested-ternary
+        let newTo = (to > 0 && to <= array.length) ? to : (to > array.length) ? array.length : array.length + to; // eslint-disable-line no-nested-ternary
 
         for (let i = newFrom; i < newTo; i++) {
             result.push(array[i]);
