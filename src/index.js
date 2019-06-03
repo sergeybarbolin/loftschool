@@ -25,18 +25,13 @@ const isAllTrue = (array, fn) => {
         throw new Error('fn is not a function');
     }
 
-    try {
-        for (let i = 0; i < array.length; i++) {
-            if (!fn(array[i])) {
-                return false;
-            }
+    for (let i = 0; i < array.length; i++) {
+        if (!fn(array[i])) {
+            return false;
         }
-
-        return true;
-    } catch (e) {
-        // eslint-disable-next-line no-console
-        console.log(e.message);
     }
+
+    return true;
 }
 
 /*
@@ -64,18 +59,13 @@ const isSomeTrue = (array, fn) => {
         throw new Error('fn is not a function');
     }
 
-    try {
-        for (let i = 0; i < array.length; i++) {
-            if (fn(array[i])) {
-                return true;
-            }
+    for (let i = 0; i < array.length; i++) {
+        if (fn(array[i])) {
+            return true;
         }
-
-        return false;
-    } catch (e) {
-        // eslint-disable-next-line no-console
-        console.log(e.message);
     }
+
+    return false;
 }
 
 /*
@@ -96,19 +86,13 @@ function returnBadArguments(fn) {
         throw new Error('fn is not a function');
     }   
 
-    try {
-        [...arguments].slice(1).forEach((argument) => {
-            try {
-                fn(argument);
-            } catch (error) {
-                result.push(argument);
-            }
-        })
-
-    } catch (e) {
-        // eslint-disable-next-line no-console
-        console.log(e.message);
-    }
+    [...arguments].slice(1).forEach((argument) => {
+        try {
+            fn(argument);
+        } catch (error) {
+            result.push(argument);
+        }
+    })
 
     return result;
 }
@@ -135,31 +119,26 @@ const calculator = (number = 0) => {
         throw new Error('number is not a number');
     }
 
-    try {
-        let result = {
-            sum: function() { 
-                return [...arguments].reduce((sum, current) => sum + current, number); 
-            },
-            dif: function() { 
-                return [...arguments].reduce((dif, current) => dif - current, number); 
-            },
-            div: function() { 
-                if ([...arguments].indexOf(0) !== -1) {
-                    throw new Error('division by 0');
-                }
-
-                return [...arguments].reduce((div, current) => div / current, number); 
-            },
-            mul: function() { 
-                return [...arguments].reduce((mul, current) => mul * current, number); 
+    let result = {
+        sum: function() { 
+            return [...arguments].reduce((sum, current) => sum + current, number); 
+        },
+        dif: function() { 
+            return [...arguments].reduce((dif, current) => dif - current, number); 
+        },
+        div: function() { 
+            if ([...arguments].indexOf(0) !== -1) {
+                throw new Error('division by 0');
             }
-        }
 
-        return result;
-    } catch (e) {
-        // eslint-disable-next-line no-console
-        console.log(e.message);
+            return [...arguments].reduce((div, current) => div / current, number); 
+        },
+        mul: function() { 
+            return [...arguments].reduce((mul, current) => mul * current, number); 
+        }
     }
+
+    return result;
 
 }
 
