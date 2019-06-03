@@ -94,8 +94,17 @@ const slice = (array, from = 0, to = array.length) => {
  Функция принимает объект и должна вернуть Proxy для этого объекта
  Proxy должен перехватывать все попытки записи значений свойств и возводить это значение в квадрат
  */
-// function createProxy(obj) {
-// }
+const createProxy = (obj) => {
+    let proxy = new Proxy(obj, {
+        set(target, prop, value) {
+            target[prop] = value * value;
+            
+            return true;
+        }
+    })
+
+    return proxy;
+}
 
 export {
     forEach,
@@ -103,5 +112,5 @@ export {
     reduce,
     upperProps,
     slice,
-    // createProxy
+    createProxy
 };
