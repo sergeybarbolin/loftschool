@@ -26,8 +26,35 @@ const homeworkContainer = document.querySelector('#homework-container');
    const newDiv = createDiv();
    homeworkContainer.appendChild(newDiv);
  */
-function createDiv() {
+
+const getRandomInt = (min = 0, max = 100) => Math.floor(Math.random() * (max - min)) + min;
+
+const getRandomColor = () => {
+    const [r,g,b] = [Math.floor(Math.random() * (256)), Math.floor(Math.random() * (256)), Math.floor(Math.random() * (256))];
+    return `RGB(${r}, ${g}, ${b})`;
 }
+
+
+
+const createDiv = () => {
+    const div = document.createElement('DIV');
+    div.classList.add('draggable-div');
+    div.setAttribute('draggable', true);
+    div.setAttribute("style", `
+                                width:${getRandomInt(0,20)}%;
+                                height:${getRandomInt(0,20)}%; 
+                                position:absolute; 
+                                left:${getRandomInt()}%; 
+                                top:${getRandomInt()}%; 
+                                background-color:${getRandomColor()};
+                                cursor: move;
+                              `
+    );
+
+    return div;
+}
+
+
 
 /*
  Функция должна добавлять обработчики событий для перетаскивания элемента при помощи drag and drop
@@ -38,18 +65,52 @@ function createDiv() {
    addListeners(newDiv);
  */
 function addListeners(target) {
+    target.addEventListener('dragstart', (e) => {
+        if (e.target.getAttribute('draggable')) {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.dropEffect = "cut";
+            e.dataTransfer.setData("Text", e.pageX);
+            
+        }
+        return;
+    });
+
+    target.addEventListener('dragenter', e => {
+        event.preventDefault();
+        return true;
+    });
+
+
+    target.addEventListener('dragover', e => {
+        event.preventDefault();
+    });
+
+    target.addEventListener('drop', (e) => {
+        
+        if (e.target.getAttribute('draggable')) {
+            
+            e.stopPropagation();
+        }
+
+    });
+
+    target.addEventListener('dragend', (e) => {
+        console.log(e.dataTransfer.getData("Text"));
+        return;
+    });
+
 }
 
 let addDivButton = homeworkContainer.querySelector('#addDiv');
-
 addDivButton.addEventListener('click', function() {
     // создать новый div
+
     const div = createDiv();
 
     // добавить на страницу
     homeworkContainer.appendChild(div);
     // назначить обработчики событий мыши для реализации D&D
-    addListeners(div);
+    addListeners(homeworkContainer);
     // можно не назначать обработчики событий каждому div в отдельности, а использовать делегирование
     // или использовать HTML5 D&D - https://www.html5rocks.com/ru/tutorials/dnd/basics/
 });
