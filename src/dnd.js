@@ -30,19 +30,20 @@ const homeworkContainer = document.querySelector('#homework-container');
 const getRandomInt = (min = 0, max = 100) => Math.floor(Math.random() * (max - min)) + min;
 
 const getRandomColor = () => {
-    const [r,g,b] = [Math.floor(Math.random() * (256)), Math.floor(Math.random() * (256)), Math.floor(Math.random() * (256))];
+    const randomColor = Math.floor(Math.random() * (256));
+    const [r, g, b] = [randomColor, randomColor, randomColor];
+    
     return `RGB(${r}, ${g}, ${b})`;
 }
 
-
-
 const createDiv = () => {
     const div = document.createElement('DIV');
+
     div.classList.add('draggable-div');
     div.setAttribute('draggable', true);
-    div.setAttribute("style", `
-                                width:${getRandomInt(0,20)}%;
-                                height:${getRandomInt(0,20)}%; 
+    div.setAttribute('style', `
+                                width:${getRandomInt(0, 20)}%;
+                                height:${getRandomInt(0, 20)}%; 
                                 position:absolute; 
                                 left:${getRandomInt()}%; 
                                 top:${getRandomInt()}%; 
@@ -53,8 +54,6 @@ const createDiv = () => {
 
     return div;
 }
-
-
 
 /*
  Функция должна добавлять обработчики событий для перетаскивания элемента при помощи drag and drop
@@ -68,20 +67,21 @@ function addListeners(target) {
     target.addEventListener('dragstart', (e) => {
         if (e.target.getAttribute('draggable')) {
             e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.dropEffect = "cut";
-            e.dataTransfer.setData("Text", e.pageX);
+            e.dataTransfer.dropEffect = 'cut';
+            e.dataTransfer.setData('Text', e.pageX);
             
         }
+
         return;
     });
 
-    target.addEventListener('dragenter', e => {
+    target.addEventListener('dragenter', () => {
         event.preventDefault();
+
         return true;
     });
 
-
-    target.addEventListener('dragover', e => {
+    target.addEventListener('dragover', () => {
         event.preventDefault();
     });
 
@@ -94,14 +94,16 @@ function addListeners(target) {
 
     });
 
-    target.addEventListener('dragend', (e) => {
-        console.log(e.dataTransfer.getData("Text"));
+    target.addEventListener('dragend', () => {
+        // console.log(e.dataTransfer.getData('Text'));
+
         return;
     });
 
 }
 
 let addDivButton = homeworkContainer.querySelector('#addDiv');
+
 addDivButton.addEventListener('click', function() {
     // создать новый div
 
