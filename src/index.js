@@ -28,7 +28,7 @@ const removeListener = (eventName, target, fn) => target.removeEventListener(eve
  Пример:
    skipDefault('click', document.querySelector('a')) // после вызова функции, клики на указанную ссылку не должны приводить к переходу на другую страницу
  */
-const skipDefault = (eventName, target) => target.addEventListener(eventName, (e) => e.preventDefault());
+const skipDefault = (eventName, target) => target.addEventListener(eventName, e => e.preventDefault());
 
 /*
  Задание 4:
@@ -64,13 +64,14 @@ const delegate = (target, fn) => target.addEventListener('click', e => e.target.
  Пример:
    once(document.querySelector('button'), () => console.log('обработчик выполнился!')) // добавит такой обработчик кликов для указанного элемента, который вызовется только один раз и затем удалится
  */
-const once = (target, fn) => {
-    target.addEventListener('click', function f() {
-        fn();
-        target.removeEventListener('click', f);
-    })
+// const once = (target, fn) => {
+//     target.addEventListener('click', function f() {
+//         fn();
+//         target.removeEventListener('click', f);
+//     })
    
-}
+// }
+const once = (target, fn) => target.addEventListener('click', fn, { once: true });
 
 export {
     addListener,
