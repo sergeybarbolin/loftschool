@@ -36,7 +36,29 @@ const homeworkContainer = document.querySelector('#homework-container');
  Массив городов пожно получить отправив асинхронный запрос по адресу
  https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json
  */
-function loadTowns() {
+
+const loadTowns = () => {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest ();
+    request.open('GET', 'https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json');
+    request.onload = function() {
+      try {
+        if (this.status === 200) {
+          let arr = JSON.parse(this.response);
+          let arrSort = arr.sort((a, b) => (a.name > b.name) ? 1 : (a.name < b.name) ? -1 : 0)
+
+          resolve(arrSort);
+        } else {
+          reject(this.status + ' ' + this.statusText);
+        }
+      } catch (e) {
+        reject(e.message);
+      }
+    }
+
+    request.send();
+
+  })
 }
 
 /*
@@ -50,8 +72,8 @@ function loadTowns() {
    isMatching('Moscow', 'SCO') // true
    isMatching('Moscow', 'Moscov') // false
  */
-function isMatching(full, chunk) {
-}
+const isMatching = (full, chunk) => full.toLowerCase().indexOf(chunk.toLowerCase()) === -1 ? false : true;
+
 
 /* Блок с надписью "Загрузка" */
 const loadingBlock = homeworkContainer.querySelector('#loading-block');
@@ -62,9 +84,23 @@ const filterInput = homeworkContainer.querySelector('#filter-input');
 /* Блок с результатами поиска */
 const filterResult = homeworkContainer.querySelector('#filter-result');
 
-filterInput.addEventListener('keyup', function() {
-    // это обработчик нажатия кливиш в текстовом поле
+const towns = loadTowns();
+
+loadTowns().then(() => {
+    loadingBlock.style.display = 'none';
+    filterBlock.style.display = 'block';
+}).then(() {
+  
+})
+
+console.log(towns);
+
+filterInput.addEventListener('keyup', function(e) {
+   loadAndSortTowns().then(towns => console.log(towns)) 
 });
+
+
+
 
 export {
     loadTowns,
