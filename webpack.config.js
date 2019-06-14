@@ -43,7 +43,7 @@ module.exports = {
             chunks: ['index']
         }),
         new HtmlPlugin({
-            title: 'Div Drag And Drop',
+            title: 'Load towns',
             template: 'towns.hbs',
             filename: 'towns.html',
             chunks: ['towns']
