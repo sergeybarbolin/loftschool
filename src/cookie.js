@@ -43,37 +43,121 @@ const addButton = homeworkContainer.querySelector('#add-button');
 // таблица со списком cookie
 const listTable = homeworkContainer.querySelector('#list-table tbody');
 
-filterNameInput.addEventListener('keyup', function() {
-    // здесь можно обработать нажатия на клавиши внутри текстового поля для фильтрации cookie
-});
-
-addButton.addEventListener('click', () => {
-    // здесь можно обработать нажатие на кнопку "добавить cookie"
-});
+document.cookie = 'test1=Hello';
+document.cookie = 'test2=World';
 
 const getAllCookie = strCookie => {
-    let arrCookies = strCookie.split('; ');
-
-    arrCookies = arrCookies.map(cookieItem => {
-        let cookieItemArr = cookieItem.split('=');
-        let cookieItemObj = {
-            name: cookieItemArr[0],
-            value: cookieItemArr[1]
+    try {
+        if (!strCookie) {
+            throw new Error('invalid str');  
         }
-        return cookieItemObj;
-    });
 
-    return arrCookies;
+        let arrCookies = strCookie.split('; ');
+
+        arrCookies = arrCookies.map(cookieItem => {
+            let cookieItemArr = cookieItem.split('=');
+            let cookieItemObj = {
+                name: cookieItemArr[0],
+                value: cookieItemArr[1]
+            }
+
+            return cookieItemObj;
+        });
+
+        return arrCookies;
+    } catch (error) {
+        return false;
+    }
+
 }
 
-const allCookie = getAllCookie(document.cookie);
+const addCookie = (name, value) => {
+    document.cookie = `${name}=${value}`;
+    allCookie = getAllCookie(document.cookie);
+    renderTable(allCookie, listTable);
+}
+
+const deleteCookie = el => {
+    const date = new Date();
+
+    date.setTime(date.getTime() - 1000)
+
+    console.log(date);
+    document.cookie = `${el.getAttribute('data-cookie-name')}=; expires=Thu, 01 Jan 1970 00:00:00 UTC`;
+}
 
 const addTableTr = (name, value) => {
     const tr = document.createElement('tr');
     const td = document.createElement('td');
 
-    tr.append(td,td);
-    console.log(tr);
+    const tdName = td.cloneNode(false);
+    const tdValue = td.cloneNode(false);
+
+    const tdBtnDelete = td.cloneNode(false);
+    const btnDelete = document.createElement('BUTTON');
+    
+    tdName.innerText = name;
+    tdValue.innerText = value;
+    btnDelete.innerText = 'Удалить';
+    btnDelete.setAttribute('data-cookie-name', name);
+    tdBtnDelete.append(btnDelete);
+
+    tr.append(tdName, tdValue, tdBtnDelete);
+    
+    return tr;
 }
 
-addTableTr();
+const renderTable = (data, where, filterValue) => {
+    try {
+        const newWhere = document.createDocumentFragment();
+
+        let filterData = String(filterValue) ? data.filter(item => isMatching(item.name, filterNameInput.value)) : null;
+        
+        const currentData = filterData || data;
+
+        currentData.forEach(element => {
+            let tr = addTableTr(element.name, element.value);
+
+            newWhere.append(tr);
+        });
+
+        if (JSON.stringify(renderTable.data) === JSON.stringify(currentData)) {
+            // eslint-disable-next-line no-undef
+            throw new UnwantedRender('Data has not changed');
+        }
+
+        where.innerHTML = '';
+        where.append(newWhere);
+        renderTable.data = currentData;
+
+        return true;
+    } catch (error) {
+        // console.log(error.message);
+        return false;
+    }
+}
+
+const isMatching = (full, chunk) => {
+    return String(full).toLowerCase().indexOf(String(chunk).toLowerCase()) === -1 ? false : true;
+};
+
+let allCookie = getAllCookie(document.cookie);
+
+renderTable(allCookie, listTable);
+
+filterNameInput.addEventListener('keyup', () => {
+    renderTable(allCookie, listTable, filterNameInput.value);
+});
+
+addButton.addEventListener('click', () => {
+    addCookie(addNameInput.value, addValueInput.value);
+    addNameInput.value = '';
+    addValueInput.value = '';
+});
+
+listTable.addEventListener('click', event => {
+    if (event.target.nodeName === 'BUTTON') {
+        deleteCookie(event.target);
+        event.target.parentElement.parentElement.remove();
+    }
+});
