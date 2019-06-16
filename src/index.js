@@ -77,8 +77,21 @@ const slice = (array, from = 0, to = array.length) => {
     let result = [];
 
     if (from <= array.length && to !== 0) {
-        let newFrom = (from >= 0) ? from : (from <= -array.length) ? 0 : array.length + from; // eslint-disable-line no-nested-ternary
-        let newTo = (to > 0 && to <= array.length) ? to : (to > array.length) ? array.length : array.length + to; // eslint-disable-line no-nested-ternary
+        let newFrom = null;
+
+        if (from >= 0) {
+            newFrom = from;
+        } else {
+            newFrom = (from <= -array.length) ? 0 : array.length + from;
+        }
+
+        let newTo = null;
+
+        if (to > 0 && to <= array.length) {
+            newTo = to;
+        } else {
+            newTo = (to > array.length) ? array.length : array.length + to;
+        }
 
         for (let i = newFrom; i < newTo; i++) {
             result.push(array[i]);
