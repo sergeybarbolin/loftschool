@@ -8,8 +8,7 @@
  Пример:
    delayPromise(3) // вернет promise, который будет разрешен через 3 секунды
  */
-const delayPromise = seconds => new Promise((resolve, reject) => setTimeout(() => resolve(), seconds * 1000));
-
+const delayPromise = seconds => new Promise(resolve => setTimeout(() => resolve(), seconds * 1000));
 
 /*
  Задание 2:
@@ -25,27 +24,29 @@ const delayPromise = seconds => new Promise((resolve, reject) => setTimeout(() =
    loadAndSortTowns().then(towns => console.log(towns)) // должна вывести в консоль отсортированный массив городов
  */
 const loadAndSortTowns = () => {
-	return new Promise((resolve, reject) => {
-		const request = new XMLHttpRequest ();
-		request.open('GET', 'https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json');
-		request.onload = function() {
-			try {
-				if (this.status === 200) {
-					let arr = JSON.parse(this.response);
-					let arrSort = arr.sort((a, b) => (a.name > b.name) ? 1 : (a.name < b.name) ? -1 : 0)
+    return new Promise((resolve, reject) => {
+        const request = new XMLHttpRequest ();
 
-					resolve(arrSort);
-				} else {
-					reject(this.status + ' ' + this.statusText);
-				}
-			} catch (e) {
-				reject(e.message);
-			}
-		}
+        request.open('GET', 'https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json');
+        request.onload = function() {
+            try {
+                if (this.status === 200) {
+                    let arr = JSON.parse(this.response);
+                    // eslint-disable-next-line no-nested-ternary
+                    let arrSort = arr.sort((a, b) => (a.name > b.name) ? 1 : (a.name < b.name) ? -1 : 0)
 
-		request.send();
+                    resolve(arrSort);
+                } else {
+                    reject(this.status + ' ' + this.statusText);
+                }
+            } catch (e) {
+                reject(e.message);
+            }
+        }
 
-	})
+        request.send();
+
+    })
 }
 
 export {

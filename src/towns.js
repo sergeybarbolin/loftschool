@@ -38,31 +38,33 @@ const homeworkContainer = document.querySelector('#homework-container');
  */
 
 const loadTowns = () => {
-  return new Promise((resolve, reject) => {
-    const request = new XMLHttpRequest ();
-    request.open('GET', 'https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json');
-    request.onload = function() {
-      try {
-          if (this.status === 200) {
-              let arr = JSON.parse(this.response);
-              let arrSort = arr.sort((a, b) => (a.name > b.name) ? 1 : (a.name < b.name) ? -1 : 0)
+    return new Promise((resolve, reject) => {
+        const request = new XMLHttpRequest ();
+        
+        request.open('GET', 'https://raw.githubusercontent.com/smelukov/citiesTest/master/cities.json');
+        request.onload = function() {
+            try {
+                if (this.status === 200) {
+                    let arr = JSON.parse(this.response);
+                    // eslint-disable-next-line no-nested-ternary
+                    let arrSort = arr.sort((a, b) => (a.name > b.name) ? 1 : (a.name < b.name) ? -1 : 0)
 
-              resolve(arrSort);
-          } else {
-              reject(this.status + ' ' + this.statusText + '1');
-          }
-      } catch (e) {
-          reject(e.message);
-      }
-    }
+                    resolve(arrSort);
+                } else {
+                    reject(this.status + ' ' + this.statusText + '1');
+                }
+            } catch (e) {
+                reject(e.message);
+            }
+        }
 
-    request.onerror = function() {
-        reject(this.status + " " + this.statusText + '1');
-    };
+        request.onerror = function() {
+            reject(this.status + ' ' + this.statusText + '1');
+        };
 
-    request.send();
+        request.send();
 
-  })
+    })
 }
 
 /*
@@ -76,9 +78,9 @@ const loadTowns = () => {
    isMatching('Moscow', 'SCO') // true
    isMatching('Moscow', 'Moscov') // false
  */
-const isMatching = (full, chunk) => String(full).toLowerCase().indexOf(String(chunk).toLowerCase()) === -1 ? false : true;
-
-
+const isMatching = (full, chunk) => {
+    return String(full).toLowerCase().indexOf(String(chunk).toLowerCase()) === -1 ? false : true
+};
 /* Блок с надписью "Загрузка" */
 const loadingBlock = homeworkContainer.querySelector('#loading-block');
 /* Блок с текстовым полем и результатом поиска */
@@ -95,9 +97,11 @@ const loadComplete = (towns) => {
 
     const resultItems = document.createDocumentFragment();
 
-    filterInput.addEventListener('keyup', e => {
+    filterInput.addEventListener('keyup', () => {
 
-        const filterTows = towns.filter(item => (filterInput.value.length !== 0) ? isMatching(item.name, filterInput.value) : false);
+        const filterTows = towns.filter(item => {
+            return (filterInput.value.length !== 0) ? isMatching(item.name, filterInput.value) : false
+        })
 
         if (filterTows.length > 0) {
 
@@ -117,13 +121,13 @@ const loadComplete = (towns) => {
             filterResult.style.display = 'none';
             filterResult.innerHTML = '';
 
-        };
+        }
 
     });
 
 }
 
-const loadError = (err) => {
+const loadError = () => {
     const errorBlock = document.createElement('div');
     const errorMessage = document.createElement('p');
     const resetBtn = document.createElement('button');
@@ -144,13 +148,7 @@ const loadError = (err) => {
     // console.log(err);
 }
 
-
 loadTowns().then(loadComplete, loadError)
-
-
-
-
-
 
 export {
     loadTowns,
