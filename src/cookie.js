@@ -82,7 +82,7 @@ const deleteCookie = el => {
 
     date.setTime(date.getTime() - 1000)
 
-    console.log(date);
+    // console.log(date);
     document.cookie = `${el.getAttribute('data-cookie-name')}=; expires=Thu, 01 Jan 1970 00:00:00 UTC`;
 }
 
@@ -150,9 +150,11 @@ filterNameInput.addEventListener('keyup', () => {
 });
 
 addButton.addEventListener('click', () => {
-    addCookie(addNameInput.value, addValueInput.value);
-    addNameInput.value = '';
-    addValueInput.value = '';
+    if (addNameInput.value && addValueInput.value) {
+        addCookie(addNameInput.value, addValueInput.value);
+        addNameInput.value = '';
+        addValueInput.value = '';
+    }
 });
 
 listTable.addEventListener('click', event => {
