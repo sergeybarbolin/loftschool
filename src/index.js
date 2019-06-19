@@ -70,6 +70,8 @@ const upperProps = obj => [...Object.keys(obj)].map((item) => item.toUpperCase()
 /*
  Задание 5 *:
 
+-2 -1 0 1 2
+
  Напишите аналог встроенного метода slice для работы с массивами
  Посмотрите как работает slice и повторите это поведение для массива, который будет передан в параметре array
  */
@@ -77,21 +79,12 @@ const slice = (array, from = 0, to = array.length) => {
     let result = [];
 
     if (from <= array.length && to !== 0) {
-        let newFrom = null;
 
-        if (from >= 0) {
-            newFrom = from;
-        } else {
-            newFrom = (from <= -array.length) ? 0 : array.length + from;
-        }
+        from = from < -array.length ? -array.length : from;
+        to = to > array.length ? array.length : to;
 
-        let newTo = null;
-
-        if (to > 0 && to <= array.length) {
-            newTo = to;
-        } else {
-            newTo = (to > array.length) ? array.length : array.length + to;
-        }
+        let newFrom = from < 0 ? from + array.length : from;
+        let newTo = to > 0 ? to : array.length + to;
 
         for (let i = newFrom; i < newTo; i++) {
             result.push(array[i]);
