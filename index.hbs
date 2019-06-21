@@ -3,7 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <title>{{htmlWebpackPlugin.options.title}}</title>
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+    }
+    #map {
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
+  <script src="https://api-maps.yandex.ru/2.1/?apikey=963c3670-287a-487a-8c60-9f1d43c03028&lang=ru_RU" type="text/javascript"></script>
 </head>
 <body>
+  <div id="map"></div>
+  <div class="popup">{{> "./src/popup.hbs"}}</div>
 </body>
 </html>
