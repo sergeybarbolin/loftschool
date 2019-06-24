@@ -36,9 +36,9 @@ const placemarks = [];
 //     return fetch(url).then(response => response.json()).then(response => response.response);
 // }
 
-const oldPlacemarks = JSON.parse(localStorage.getItem('placemarks'));
+// const oldPlacemarks = JSON.parse(localStorage.getItem('placemarks'));
 
-console.log(oldPlacemarks);
+// console.log(oldPlacemarks);
 
 const init = () => {
     const map = new ymaps.Map('map', {
@@ -56,12 +56,12 @@ const init = () => {
         clusterBalloonPagerSize: 100,
     });
 
-    oldPlacemarks.forEach(item => {
-        const placemark = createPlacemark(item.item.coord, item.item);
+    // oldPlacemarks.forEach(item => {
+    //     const placemark = createPlacemark(item.item.coord, item.item);
 
-        clusterer.add(placemark);
-        map.geoObjects.add(clusterer);
-    });
+    //     clusterer.add(placemark);
+    //     map.geoObjects.add(clusterer);
+    // });
 
     map.events.add('click', e => {
         const currentCoords = e.get('coords');
@@ -80,15 +80,14 @@ const init = () => {
             clusterer.add(placemark);
             map.geoObjects.add(clusterer);
             
-            const saveObj = {
-                name: obj.name,
-                description: obj.description,
-                coord: currentCoords
-            }
+            // const saveObj = {
+            //     name: obj.name,
+            //     description: obj.description,
+            //     coord: currentCoords
+            // }
 
-            placemarks.push({item: saveObj, reviews: []})
-
-            localStorage.setItem('placemarks', JSON.stringify(placemarks));
+            // placemarks.push({item: saveObj, reviews: []})
+            // localStorage.setItem('placemarks', JSON.stringify(placemarks));
         }, function (err) {
             // Обработка ошибки.
         });
