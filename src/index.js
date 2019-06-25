@@ -5,38 +5,44 @@ const addNewPlacemark = (coords, geoObject, clusterer) => {
         balloonContentHeader: geoObject.name,
         balloonContentBody: geoObject.description,
         balloonContentFooter: 'Подвал',
-        hintContent: 'Хинт метки'
+        hintContent: coords[0] + coords[1],
     });
 
     clusterer.add(placemark);
+    
     return true;
 };
 
 const createClusterer = () => {
     return new ymaps.Clusterer({
-            clusterDisableClickZoom: true,
-            clusterOpenBalloonOnClick: true,
-            clusterBalloonContentLayout: 'cluster#balloonCarousel',
-            clusterBalloonPanelMaxMapArea: 0,
-            clusterBalloonContentLayoutWidth: 200,
-            clusterBalloonContentLayoutHeight: 130,
-            clusterBalloonPagerSize: 100,
+        clusterDisableClickZoom: true,
+        clusterOpenBalloonOnClick: true,
+        clusterBalloonContentLayout: 'cluster#balloonCarousel',
+        clusterBalloonPanelMaxMapArea: 0,
+        clusterBalloonContentLayoutWidth: 200,
+        clusterBalloonContentLayoutHeight: 130,
+        clusterBalloonPagerSize: 100,
     });
 }
 
 const placemarksStorage = {
-    _placemarks: localStorage.getItem('placemarks') ? JSON.parse(localStorage.getItem('placemarks')) : [],
+    _placemarks: localStorage.getItem('placemarks') ? JSON.parse(localStorage.getItem('placemarks')) : {},
     add: function(coords, placemark) {
         const placemarkInfo = {
             name: placemark.name,
             description: placemark.description,
         }
-            
-        this['_placemarks'].push({ coords, placemarkInfo });
-        localStorage.setItem('placemarks', JSON.stringify(this['_placemarks']));
+
+        const key = (placemark.name + placemark.description).replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\s]/g,"")
+        
+        this._placemarks[key] = this._placemarks[key] ? this._placemarks[key] : [];
+        
+        this._placemarks[key].push( { coords, placemarkInfo } );
+        
+        localStorage.setItem('placemarks', JSON.stringify(this._placemarks));
     },
-    get getAll(){
-        return this['_placemarks'];
+    get getAll() {
+        return this._placemarks;
     },
 }
 
@@ -52,17 +58,16 @@ const init = () => {
 ymaps.ready(() => {
     const map = init();
     const clusterer = createClusterer();
-
+    
     map.geoObjects.add(clusterer);
+    // placemarksStorage.getAll.forEach(element => {
+    //     const { coords, placemarkInfo } = element;
 
-    placemarksStorage.getAll.forEach(element => {
-        const { coords, placemarkInfo } = element;
-
-        addNewPlacemark(coords, placemarkInfo, clusterer);
-    });
+    //     addNewPlacemark(coords, placemarkInfo, clusterer);
+    // });
 
     map.geoObjects.events.add('click', e => {
-        const elementName = e.get('target').options['_name'];
+        const elementName = e.get('target').options._name;
 
         if (elementName === 'geoObject') {
             e.preventDefault();
@@ -73,16 +78,18 @@ ymaps.ready(() => {
 
     map.events.add('click', e => {
         const coords = e.get('coords');
-        const myGeocoder = ymaps.geocode(currentCoords, {
+        const myGeocoder = ymaps.geocode(coords, {
             results: 1,
             json: true
         });
         
         myGeocoder.then(function (res) {
+            console.log(res);
+
             const responseData = res.GeoObjectCollection.featureMember[0].GeoObject;
+
             addNewPlacemark(coords, responseData, clusterer);
-            
-            placemarksStorage.add(currentCoords, responseData);
+            placemarksStorage.add(coords, responseData);
 
         }, function (err) {
             // Обработка ошибки.
