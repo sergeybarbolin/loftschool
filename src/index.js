@@ -1,11 +1,11 @@
 import { resolve } from "url";
 
-const addNewPlacemark = (coords, geoObject, clusterer) => {
+const addNewPlacemark = (coords, address, clusterer) => {
     let placemark = new ymaps.Placemark(coords, {
-        balloonContentHeader: geoObject.name,
-        balloonContentBody: geoObject.description,
+        balloonContentHeader: address,
+        balloonContentBody: 'body',
         balloonContentFooter: 'Подвал',
-        hintContent: coords[0] + coords[1],
+        hintContent: 'footer',
     });
 
     clusterer.add(placemark);
@@ -27,17 +27,17 @@ const createClusterer = () => {
 
 const placemarksStorage = {
     _placemarks: localStorage.getItem('placemarks') ? JSON.parse(localStorage.getItem('placemarks')) : {},
-    add: function(coords, placemark) {
-        const placemarkInfo = {
-            name: placemark.name,
-            description: placemark.description,
+    add: function(coords, address) {
+        
+        const key = address.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\s]/g,'');
+        
+        if (!this._placemarks[key]) {
+            this._placemarks[key] = {};
+            this._placemarks[key].address = address;
+            this._placemarks[key].reviews = []
         }
-
-        const key = (placemark.name + placemark.description).replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\s]/g,"")
         
-        this._placemarks[key] = this._placemarks[key] ? this._placemarks[key] : [];
-        
-        this._placemarks[key].push( { coords, placemarkInfo } );
+        this._placemarks[key].reviews.push( { coords, review: 'отзыв' } );
         
         localStorage.setItem('placemarks', JSON.stringify(this._placemarks));
     },
@@ -84,12 +84,10 @@ ymaps.ready(() => {
         });
         
         myGeocoder.then(function (res) {
-            console.log(res);
+            const address = res.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text;
 
-            const responseData = res.GeoObjectCollection.featureMember[0].GeoObject;
-
-            addNewPlacemark(coords, responseData, clusterer);
-            placemarksStorage.add(coords, responseData);
+            addNewPlacemark(coords, address, clusterer);
+            placemarksStorage.add(coords, address);
 
         }, function (err) {
             // Обработка ошибки.
