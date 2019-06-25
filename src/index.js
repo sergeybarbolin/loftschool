@@ -1,6 +1,6 @@
 import { resolve } from "url";
 
-const addNewPlacemark = (coords, geoObject, map, clusterer) => {
+const addNewPlacemark = (coords, geoObject, clusterer) => {
     let placemark = new ymaps.Placemark(coords, {
         balloonContentHeader: geoObject.name,
         balloonContentBody: geoObject.description,
@@ -8,86 +8,86 @@ const addNewPlacemark = (coords, geoObject, map, clusterer) => {
         hintContent: 'Хинт метки'
     });
 
-    placemark.events.add('click', event => {
-        event.preventDefault();
-    });
-    
     clusterer.add(placemark);
-    map.geoObjects.add(clusterer);
-
     return true;
 };
 
-// const geocoder = coords => {
-//     const coordsStr = coords.reverse().join(',');
-//     const url = `https://geocode-maps.yandex.ru/1.x/?apikey=963c3670-287a-487a-8c60-9f1d43c03028&format=json&results=1&geocode=${coordsStr}`;
-    
-//     return fetch(url).then(response => response.json()).then(response => response.response);
-// }
-
-const saveInLocalStorage = (key, arr) => {
-    localStorage.setItem(key, JSON.stringify(arr));
+const createClusterer = () => {
+    return new ymaps.Clusterer({
+            clusterDisableClickZoom: true,
+            clusterOpenBalloonOnClick: true,
+            clusterBalloonContentLayout: 'cluster#balloonCarousel',
+            clusterBalloonPanelMaxMapArea: 0,
+            clusterBalloonContentLayoutWidth: 200,
+            clusterBalloonContentLayoutHeight: 130,
+            clusterBalloonPagerSize: 100,
+    });
 }
 
-const init = existingPlacemarks => {
+const placemarksStorage = {
+    _placemarks: localStorage.getItem('placemarks') ? JSON.parse(localStorage.getItem('placemarks')) : [],
+    add: function(coords, placemark) {
+        const placemarkInfo = {
+            name: placemark.name,
+            description: placemark.description,
+        }
+            
+        this['_placemarks'].push({ coords, placemarkInfo });
+        localStorage.setItem('placemarks', JSON.stringify(this['_placemarks']));
+    },
+    get getAll(){
+        return this['_placemarks'];
+    },
+}
+
+const init = () => {
     const map = new ymaps.Map('map', {
         center: [59.938892, 30.315221],
         zoom: 15,
     })
 
-    const clusterer = new ymaps.Clusterer({
-        clusterDisableClickZoom: true,
-        clusterOpenBalloonOnClick: true,
-        clusterBalloonContentLayout: 'cluster#balloonCarousel',
-        clusterBalloonPanelMaxMapArea: 0,
-        clusterBalloonContentLayoutWidth: 200,
-        clusterBalloonContentLayoutHeight: 130,
-        clusterBalloonPagerSize: 100,
+    return map;
+}
+
+ymaps.ready(() => {
+    const map = init();
+    const clusterer = createClusterer();
+
+    map.geoObjects.add(clusterer);
+
+    placemarksStorage.getAll.forEach(element => {
+        const { coords, placemarkInfo } = element;
+
+        addNewPlacemark(coords, placemarkInfo, clusterer);
     });
 
-    if (existingPlacemarks.length) {
-        
-        existingPlacemarks.forEach(element => {
-            let { coords, placemarkInfo } = element;
+    map.geoObjects.events.add('click', e => {
+        const elementName = e.get('target').options['_name'];
 
-            addNewPlacemark(coords, placemarkInfo, map, clusterer); 
-        });
-    } 
+        if (elementName === 'geoObject') {
+            e.preventDefault();
+        } else if (elementName === 'cluster') {
+            console.log('sad');
+        }
+    });
 
     map.events.add('click', e => {
-        const currentCoords = e.get('coords');
-
+        const coords = e.get('coords');
         const myGeocoder = ymaps.geocode(currentCoords, {
             results: 1,
             json: true
         });
-
-        // const myGeocoder = geocoder(currentCoords);
         
         myGeocoder.then(function (res) {
-            console.log(res);
             const responseData = res.GeoObjectCollection.featureMember[0].GeoObject;
-
-            const placemarkInfo = {
-                name: responseData.name,
-                description: responseData.description,
-            }
+            addNewPlacemark(coords, responseData, clusterer);
             
-            addNewPlacemark(currentCoords, placemarkInfo, map, clusterer);
-            existingPlacemarks.push({ coords: currentCoords, placemarkInfo: placemarkInfo });
-
-            saveInLocalStorage('placemarks', existingPlacemarks);
+            placemarksStorage.add(currentCoords, responseData);
 
         }, function (err) {
             // Обработка ошибки.
         });
     });
 
-}
-
-ymaps.ready(() => {
-    const oldPlacemarks = localStorage.getItem('placemarks') ? JSON.parse(localStorage.getItem('placemarks')) : [];
-
-    init(oldPlacemarks);
 });
 
