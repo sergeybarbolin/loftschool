@@ -1,4 +1,6 @@
-import { resolve } from "url";
+import { resolve } from 'url';
+
+const deleteCharacters = str => str.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\s]/g, '');
 
 const addNewPlacemark = (coords, address, clusterer) => {
     let placemark = new ymaps.Placemark(coords, {
@@ -9,7 +11,8 @@ const addNewPlacemark = (coords, address, clusterer) => {
     });
 
     clusterer.add(placemark);
-    
+    // console.log(clusterer);
+
     return true;
 };
 
@@ -29,7 +32,7 @@ const placemarksStorage = {
     _placemarks: localStorage.getItem('placemarks') ? JSON.parse(localStorage.getItem('placemarks')) : {},
     add: function(coords, address) {
         
-        const key = address.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\s]/g,'');
+        const key = deleteCharacters(address);
         
         if (!this._placemarks[key]) {
             this._placemarks[key] = {};
@@ -44,6 +47,19 @@ const placemarksStorage = {
     get getAll() {
         return this._placemarks;
     },
+    forAll: function(fn) {
+        const existingPlacemarks = this.getAll;
+
+        // eslint-disable-next-line guard-for-in
+        for (let item in existingPlacemarks) {
+            
+            const address = existingPlacemarks[item].address;
+
+            existingPlacemarks[item].reviews.forEach(review => {
+                fn(review.coords, address);
+            })
+        }
+    }
 }
 
 const init = () => {
@@ -58,13 +74,14 @@ const init = () => {
 ymaps.ready(() => {
     const map = init();
     const clusterer = createClusterer();
-    
-    map.geoObjects.add(clusterer);
-    // placemarksStorage.getAll.forEach(element => {
-    //     const { coords, placemarkInfo } = element;
 
-    //     addNewPlacemark(coords, placemarkInfo, clusterer);
-    // });
+    map.geoObjects.add(clusterer);
+
+    placemarksStorage.forAll((coords, address) => {
+        addNewPlacemark(coords, address, clusterer);
+    });
+
+    // console.log(clusterer);
 
     map.geoObjects.events.add('click', e => {
         const elementName = e.get('target').options._name;
