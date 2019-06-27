@@ -2,10 +2,10 @@ import { resolve } from 'url';
 
 const deleteCharacters = str => str.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\s]/g, '');
 
-const addNewPlacemark = (coords, address, clusterer) => {
+const addNewPlacemark = (coords, address, clusterer, review) => {
     let placemark = new ymaps.Placemark(coords, {
         balloonContentHeader: address,
-        balloonContentBody: 'body',
+        balloonContentBody: `Имя: ${review.firstName} Фамилия: ${review.secondName} Отзыв: ${review.review}`,
         balloonContentFooter: 'Подвал',
         hintContent: 'footer',
     });
@@ -71,17 +71,30 @@ const init = () => {
     return map;
 }
 
+const formHandler = formIdentifier => {
+    const form = document.querySelector(formIdentifier);
+    const data = {};
+
+    for (const el of form.children) {
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+            data[el.getAttribute('name')] = el.value
+        } 
+    }
+    
+    return data;
+}
+
 ymaps.ready(() => {
     const map = init();
     const clusterer = createClusterer();
+    const popup = document.querySelector('.popup');
+    let coords = null;
 
     map.geoObjects.add(clusterer);
 
     placemarksStorage.forAll((coords, address) => {
         addNewPlacemark(coords, address, clusterer);
     });
-
-    // console.log(clusterer);
 
     map.geoObjects.events.add('click', e => {
         const elementName = e.get('target').options._name;
@@ -94,22 +107,32 @@ ymaps.ready(() => {
     });
 
     map.events.add('click', e => {
-        const coords = e.get('coords');
-        const myGeocoder = ymaps.geocode(coords, {
-            results: 1,
-            json: true
-        });
-        
-        myGeocoder.then(function (res) {
-            const address = res.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text;
-
-            addNewPlacemark(coords, address, clusterer);
-            placemarksStorage.add(coords, address);
-
-        }, function (err) {
-            // Обработка ошибки.
-        });
+        coords = e.get('coords');
     });
+
+    popup.addEventListener('click', e => {
+        const formData = formHandler('.form');
+
+        if (e.target.getAttribute('name') === 'send') {
+            const myGeocoder = ymaps.geocode(coords, {
+                results: 1,
+                json: true
+            });
+
+            myGeocoder.then(function (res) {
+                const address = res.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text;
+                
+                console.log('asdasd');
+
+                addNewPlacemark(coords, address, clusterer, formData);
+                // placemarksStorage.add(coords, address);
+
+            }, function (err) {
+                // Обработка ошибки.
+            });
+        }
+        
+    })
 
 });
 
