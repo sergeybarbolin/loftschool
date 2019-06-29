@@ -2,7 +2,7 @@ import { resolve } from 'url';
 
 const deleteCharacters = str => str.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\s]/g, '');
 
-const addNewPlacemark = (coords, address, clusterer, review) => {
+const addNewPlacemark = (coords, address, review = {}) => {
     let placemark = new ymaps.Placemark(coords, {
         balloonContentHeader: address,
         balloonContentBody: `Имя: ${review.firstName} Фамилия: ${review.secondName} Отзыв: ${review.review}`,
@@ -10,10 +10,7 @@ const addNewPlacemark = (coords, address, clusterer, review) => {
         hintContent: 'footer',
     });
 
-    clusterer.add(placemark);
-    // console.log(clusterer);
-
-    return true;
+    return placemark;
 };
 
 const createClusterer = () => {
@@ -30,7 +27,7 @@ const createClusterer = () => {
 
 const placemarksStorage = {
     _placemarks: localStorage.getItem('placemarks') ? JSON.parse(localStorage.getItem('placemarks')) : {},
-    add: function(coords, address) {
+    add: function(coords, address, review) {
         
         const key = deleteCharacters(address);
         
@@ -40,7 +37,7 @@ const placemarksStorage = {
             this._placemarks[key].reviews = []
         }
         
-        this._placemarks[key].reviews.push( { coords, review: 'отзыв' } );
+        this._placemarks[key].reviews.push( { coords, review } );
         
         localStorage.setItem('placemarks', JSON.stringify(this._placemarks));
     },
@@ -51,12 +48,12 @@ const placemarksStorage = {
         const existingPlacemarks = this.getAll;
 
         // eslint-disable-next-line guard-for-in
-        for (let item in existingPlacemarks) {
+        for (let prop in existingPlacemarks) {
             
-            const address = existingPlacemarks[item].address;
+            const address = existingPlacemarks[prop].address;
 
-            existingPlacemarks[item].reviews.forEach(review => {
-                fn(review.coords, address);
+            existingPlacemarks[prop].reviews.forEach(item => {
+                fn(item.coords, address, item.review);
             })
         }
     }
@@ -84,16 +81,28 @@ const formHandler = formIdentifier => {
     return data;
 }
 
+const geocoder = coords => {
+    const coordsStr = coords.slice().reverse().join(',');
+    const url = `https://geocode-maps.yandex.ru/1.x/?apikey=963c3670-287a-487a-8c60-9f1d43c03028&format=json&results=1&geocode=${coordsStr}`;
+    
+    return fetch(url)
+        .then(response => response.json())
+        .then(response => response.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text)
+}
+
 ymaps.ready(() => {
     const map = init();
     const clusterer = createClusterer();
     const popup = document.querySelector('.popup');
     let coords = null;
+    let address = null;
 
     map.geoObjects.add(clusterer);
 
-    placemarksStorage.forAll((coords, address) => {
-        addNewPlacemark(coords, address, clusterer);
+    placemarksStorage.forAll((coords, address, review) => {
+        const placemark = addNewPlacemark(coords, address, review);
+        
+        clusterer.add(placemark);
     });
 
     map.geoObjects.events.add('click', e => {
@@ -108,28 +117,21 @@ ymaps.ready(() => {
 
     map.events.add('click', e => {
         coords = e.get('coords');
+
+        geocoder(coords).then(response => {
+            address = response;
+        });
+        
     });
 
     popup.addEventListener('click', e => {
         const formData = formHandler('.form');
 
         if (e.target.getAttribute('name') === 'send') {
-            const myGeocoder = ymaps.geocode(coords, {
-                results: 1,
-                json: true
-            });
+            const placemark = addNewPlacemark(coords, address, formData);
 
-            myGeocoder.then(function (res) {
-                const address = res.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text;
-                
-                console.log('asdasd');
-
-                addNewPlacemark(coords, address, clusterer, formData);
-                // placemarksStorage.add(coords, address);
-
-            }, function (err) {
-                // Обработка ошибки.
-            });
+            clusterer.add(placemark);
+            placemarksStorage.add(coords, address, formData);
         }
         
     })
