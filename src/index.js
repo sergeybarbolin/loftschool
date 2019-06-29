@@ -92,6 +92,8 @@ const geocoder = coords => {
 
 ymaps.ready(() => {
     const map = init();
+    const mapWrapper = document.querySelector('#map');
+    
     const clusterer = createClusterer();
     const popup = document.querySelector('.popup');
     let coords = null;
@@ -117,9 +119,33 @@ ymaps.ready(() => {
 
     map.events.add('click', e => {
         coords = e.get('coords');
+        const position = {
+            x: e.get('domEvent').get('pageX'),
+            y: e.get('domEvent').get('pageY')
+        }
+
+        popup.style.left = (position.x > mapWrapper.offsetWidth / 2) ?
+            popup.style.left = position.x - popup.offsetWidth - 5 + 'px' :
+            popup.style.left = position.x + 5 + 'px';
+
+        popup.style.top = (position.y > mapWrapper.offsetHeight / 2) ?
+            popup.style.top = position.y - popup.offsetHeight - 5 + 'px' :
+            popup.style.top = position.y + 5 + 'px';
 
         geocoder(coords).then(response => {
             address = response;
+
+            const specificReviews = placemarksStorage.getAll[deleteCharacters(address)].reviews;
+
+            // console.log(specificReviews[0].review.firstName);
+            specificReviews.forEach(item => {
+                let reviewWrapper = document.createElement('p');
+                let textReview = `Имя: ${item.review.firstName} Фамилия: ${item.review.secondName} Отзыв: ${item.review.review}`
+            
+                reviewWrapper.innerText = textReview; 
+                popup.prepend(reviewWrapper);
+            })
+            popup.style.display = 'block';
         });
         
     });
