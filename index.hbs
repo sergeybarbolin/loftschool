@@ -12,6 +12,8 @@
     #map {
       width: 100vw;
       height: 100vh;
+      position: relative;
+      overflow: hidden;
     }
     .popup {
       position: absolute;
@@ -21,7 +23,16 @@
       padding: 15px 10px;
       background-color: #fff;
       border: 1px solid #999;
-      display: none;
+      visibility: hidden;
+      z-index: -10;
+    }
+    .popup--visible {
+      visibility: visible;
+      z-index: 10;
+    }
+    .reviews {
+      height: 150px;
+      overflow: auto;
     }
     .form {}
     .form__text-field {
@@ -43,7 +54,9 @@
   <script src="https://api-maps.yandex.ru/2.1/?apikey=963c3670-287a-487a-8c60-9f1d43c03028&lang=ru_RU" type="text/javascript"></script>
 </head>
 <body>
-  <div id="map"></div>
-  <div class="popup">{{> "./src/popup.hbs"}}</div>
+  <div id="map">
+    <div class="popup">{{> "./src/popup.hbs"}}</div>
+  </div>
+  
 </body>
 </html>
