@@ -1,119 +1,13 @@
 import { resolve } from 'url';
 
+import { deleteCharacters, formHandler, formClear } from './scripts/helpers.js';
 
-const deleteCharacters = str => str.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\s]/g, '');
+import { init } from './scripts/map/init.js';
+import { clusterer } from './scripts/map/createClusterer.js';
+import { addNewPlacemark } from './scripts/map/addNewPlacemark.js';
+import { placemarksStorage } from './scripts/map/placemarksStorage.js';
+import { geocoder } from './scripts/map/geocoder.js';
 
-const addNewPlacemark = (coords, address, review = {}) => {
-    let placemark = new ymaps.Placemark(coords, {
-        balloonContentHeader: address,
-        balloonContentBody: `Имя: ${review.firstName} Фамилия: ${review.secondName} Отзыв: ${review.review}`,
-        balloonContentFooter: 'Подвал',
-        hintContent: 'footer',
-    });
-
-    return placemark;
-};
-
-const createClusterer = () => {
-    const customClusterBalloonContent = ymaps.templateLayoutFactory.createClass(
-        `
-            <div class="balloon">
-                <a href="#">{{ properties.balloonContentHeader|raw }}</a>
-                <div class="balloon__body">{{ properties.balloonContentBody|raw }}</div>
-                <div class="balloon__footer">{{ properties.balloonContentFooter|raw }}</div>
-            </div>
-        `
-    );
-
-    return new ymaps.Clusterer({
-        clusterDisableClickZoom: true,
-        clusterOpenBalloonOnClick: true,
-        clusterBalloonContentLayout: 'cluster#balloonCarousel',
-        clusterBalloonItemContentLayout: customClusterBalloonContent,
-        clusterBalloonPanelMaxMapArea: 0,
-        clusterBalloonContentLayoutWidth: 200,
-        clusterBalloonContentLayoutHeight: 130,
-        clusterBalloonPagerSize: 100,
-    });
-}
-
-const placemarksStorage = {
-    _placemarks: localStorage.getItem('placemarks') ? JSON.parse(localStorage.getItem('placemarks')) : {},
-    add: function(coords, address, review) {
-        
-        const key = deleteCharacters(address);
-        
-        if (!this._placemarks[key]) {
-            this._placemarks[key] = {};
-            this._placemarks[key].address = address;
-            this._placemarks[key].reviews = []
-        }
-        
-        this._placemarks[key].reviews.push( { coords, review } );
-        
-        localStorage.setItem('placemarks', JSON.stringify(this._placemarks));
-    },
-    get getAll() {
-        return this._placemarks;
-    },
-    getItem: function(key) {
-        return this._placemarks[key];
-    },
-    forAll: function(fn) {
-        const existingPlacemarks = this.getAll;
-
-        // eslint-disable-next-line guard-for-in
-        for (let prop in existingPlacemarks) {
-            
-            const address = existingPlacemarks[prop].address;
-
-            existingPlacemarks[prop].reviews.forEach(item => {
-                fn(item.coords, address, item.review);
-            })
-        }
-    }
-}
-
-const init = () => {
-    const map = new ymaps.Map('map', {
-        center: [59.938892, 30.315221],
-        zoom: 15,
-    })
-
-    return map;
-}
-
-const formHandler = formIdentifier => {
-    const form = document.querySelector(formIdentifier);
-    const data = {};
-
-    for (const el of form.children) {
-        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-            data[el.getAttribute('name')] = el.value
-        } 
-    }
-    
-    return data;
-}
-
-const formClear = formIdentifier => {
-    const form = document.querySelector(formIdentifier);
-
-    for (const el of form.children) {
-        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-            el.value = '';
-        } 
-    }
-}
-
-const geocoder = coords => {
-    const coordsStr = coords.slice().reverse().join(',');
-    const url = `https://geocode-maps.yandex.ru/1.x/?apikey=963c3670-287a-487a-8c60-9f1d43c03028&format=json&results=1&geocode=${coordsStr}`;
-    
-    return fetch(url)
-        .then(response => response.json())
-        .then(response => response.response.GeoObjectCollection.featureMember[0].GeoObject.metaDataProperty.GeocoderMetaData.text)
-}
 
 const renderReviews = (popup, address) => {
     const key = deleteCharacters(address);
@@ -154,7 +48,6 @@ const displayPopup = (popup, mapWrapper, position, map) => {
 
 ymaps.ready(() => {
     const map = init();
-    const clusterer = createClusterer();
     let coords = null;
     let address = null;
 
