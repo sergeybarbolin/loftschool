@@ -1,3 +1,12 @@
+const createMap = () => {
+    const map = new ymaps.Map('map', {
+        center: [59.938892, 30.315221],
+        zoom: 15,
+    })
+
+    return map;
+}
+
 const createClusterer = () => {
     const customClusterBalloonContent = ymaps.templateLayoutFactory.createClass(
         `
@@ -21,4 +30,4 @@ const createClusterer = () => {
     });
 }
 
-export const clusterer = createClusterer();
+export { createMap, createClusterer };

@@ -1,53 +1,19 @@
-import { resolve } from 'url';
+import { formHandler, deleteCharacters } from './scripts/helpers.js';
 
-import { deleteCharacters, formHandler, formClear } from './scripts/helpers.js';
-
-import { init } from './scripts/map/init.js';
-import { clusterer } from './scripts/map/createClusterer.js';
+import { createMap, createClusterer } from './scripts/map/map.js';
 import { addNewPlacemark } from './scripts/map/addNewPlacemark.js';
 import { placemarksStorage } from './scripts/map/placemarksStorage.js';
 import { geocoder } from './scripts/map/geocoder.js';
 
+import { renderReviews } from './scripts/popup/renderReviews.js';
+import { displayPopup } from './scripts/popup/displayPopup.js';
 
-const renderReviews = (popup, address) => {
-    const key = deleteCharacters(address);
-    const dataItem = placemarksStorage.getItem(key);
-    const reviews = dataItem ? dataItem.reviews : [];
-    const reviewWrapper = popup.querySelector('.reviews');
+const init = () => {
+    const map = createMap();
+    const clusterer = createClusterer();
+    const popup = document.querySelector('.popup');
+    const mapWrapper = document.querySelector('#map');
 
-    formClear('.form');
-    reviewWrapper.innerHTML = '';
-
-    reviews.forEach(item => {
-        let reviewItem = document.createElement('p');
-        let textReview = `Имя: ${item.review.firstName} Фамилия: ${item.review.secondName} Отзыв: ${item.review.review}`;
-        
-        reviewItem.innerText = textReview; 
-        reviewWrapper.prepend(reviewItem);
-    });
-}
-
-const displayPopup = (popup, mapWrapper, position, map) => {
-    
-    const positionCenter = map.getGlobalPixelCenter();
-
-    const offsetTop = position.y + popup.offsetHeight - window.innerHeight;
-    const offsetRight = position.x + popup.offsetWidth - window.innerWidth;
-    let newPositionY = (offsetTop > 0) ? positionCenter[1] + 20 + offsetTop : positionCenter[1];
-    let newPositionX = (offsetRight > 0) ? positionCenter[0] + 20 + offsetRight : positionCenter[0]
-
-    console.log(position.y, offsetTop);
-    popup.style.top = (offsetTop > 0) ? position.y - offsetTop - 25 + 'px' : position.y + 5 + 'px';
-    popup.style.left = (offsetRight > 0) ? position.x - offsetRight - 25 + 'px' : position.x + 5 + 'px';
-
-    map.setGlobalPixelCenter([newPositionX, newPositionY]);
-    popup.classList.add('popup--visible');
-
-    return true;
-}
-
-ymaps.ready(() => {
-    const map = init();
     let coords = null;
     let address = null;
 
@@ -67,13 +33,12 @@ ymaps.ready(() => {
         }
 
         address = e.get('target').properties.get('balloonContentHeader');
-        coords = e.get('coords');
 
         clusterer.balloon.close();
 
         if (elementName === 'geoObject') {
             e.preventDefault();
-
+            coords = e.get('coords');
             displayPopup(popup, mapWrapper, position, map);
             renderReviews(popup, address);
 
@@ -92,27 +57,15 @@ ymaps.ready(() => {
 
         clusterer.balloon.close();
 
-        geocoder(coords).then(response => {
-            address = response;
-            displayPopup(popup, mapWrapper, position, map);
-            renderReviews(popup, address);
-        });
-        
-    });
-
-    const popup = document.querySelector('.popup');
-    const mapWrapper = document.querySelector('#map');
-
-    popup.addEventListener('click', e => {
-        const formData = formHandler('.form');
-
-        if (e.target.getAttribute('name') === 'send') {
-            const placemark = addNewPlacemark(coords, address, formData);
-
-            clusterer.add(placemark);
-            placemarksStorage.add(coords, address, formData);
-            renderReviews(popup, address);
-        }
+        geocoder(coords)
+            .then(response => {
+                address = response;
+                displayPopup(popup, mapWrapper, position, map);
+                renderReviews(popup, address);
+            })
+            .catch(() => {
+                throw new Error('Ошибка при получении данных...')
+            })
         
     });
 
@@ -130,7 +83,7 @@ ymaps.ready(() => {
             coords = dataItem.reviews[0].coords;
             address = e.target.innerText;
 
-            // console.log(position);
+            console.log(coords, address);
             clusterer.balloon.close();
             displayPopup(popup, mapWrapper, position, map);
             renderReviews(popup, e.target.innerText);
@@ -138,5 +91,22 @@ ymaps.ready(() => {
         
     });
 
-});
+    popup.addEventListener('click', e => {
+        const formData = formHandler('.form');
 
+        if (e.target.getAttribute('name') === 'send') {
+            const placemark = addNewPlacemark(coords, address, formData);
+
+            clusterer.add(placemark);
+            placemarksStorage.add(coords, address, formData);
+            renderReviews(popup, address);
+        }
+        
+    })
+}
+
+try {
+    ymaps.ready(init);
+} catch (e) {
+    document.body.innerHTML = 'Что-то пошло не так..'
+}

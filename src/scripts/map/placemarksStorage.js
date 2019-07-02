@@ -1,3 +1,6 @@
+import { deleteCharacters } from './../helpers.js';
+import moment from 'moment';
+
 export const placemarksStorage = {
     _placemarks: localStorage.getItem('placemarks') ? JSON.parse(localStorage.getItem('placemarks')) : {},
     add: function(coords, address, review) {
@@ -10,7 +13,7 @@ export const placemarksStorage = {
             this._placemarks[key].reviews = []
         }
         
-        this._placemarks[key].reviews.push( { coords, review } );
+        this._placemarks[key].reviews.push( { coords, review, date: moment().format('YYYY.MM.DD') + ' ' + moment().format('hh:mm:ss') } );
         
         localStorage.setItem('placemarks', JSON.stringify(this._placemarks));
     },

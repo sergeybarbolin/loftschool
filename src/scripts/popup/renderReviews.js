@@ -1,4 +1,7 @@
-const renderReviews = (popup, address) => {
+import { placemarksStorage } from './../map/placemarksStorage.js';
+import { deleteCharacters, formClear } from './../helpers.js';
+
+export const renderReviews = (popup, address) => {
     const key = deleteCharacters(address);
     const dataItem = placemarksStorage.getItem(key);
     const reviews = dataItem ? dataItem.reviews : [];
