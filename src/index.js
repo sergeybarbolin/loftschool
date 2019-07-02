@@ -1,5 +1,6 @@
 import { resolve } from 'url';
 
+
 const deleteCharacters = str => str.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\s]/g, '');
 
 const addNewPlacemark = (coords, address, review = {}) => {
@@ -136,29 +137,17 @@ const displayPopup = (popup, mapWrapper, position, map) => {
     
     const positionCenter = map.getGlobalPixelCenter();
 
-    popup.style.left = position.x - popup.offsetWidth - 5 + 'px'
-    popup.style.top = position.y - popup.offsetHeight - 5 + 'px';
-    map.setGlobalPixelCenter([positionCenter[0], positionCenter[1] - popup.offsetHeight + 5]);
+    const offsetTop = position.y + popup.offsetHeight - window.innerHeight;
+    const offsetRight = position.x + popup.offsetWidth - window.innerWidth;
+    let newPositionY = (offsetTop > 0) ? positionCenter[1] + 20 + offsetTop : positionCenter[1];
+    let newPositionX = (offsetRight > 0) ? positionCenter[0] + 20 + offsetRight : positionCenter[0]
 
-    // if (position.x > mapWrapper.offsetWidth / 2) {
-    //     popup.style.left = position.x - popup.offsetWidth - 5 + 'px'
-    //     // map.setGlobalPixelCenter([positionCenter[0] + popup.offsetWidth + 5, positionCenter[1]]);
-    // } else {
-    //     popup.style.left = position.x + 5 + 'px';
-    //     // map.setGlobalPixelCenter([positionCenter[0] - popup.offsetWidth - 5, positionCenter[1]]);
-    // }
+    console.log(position.y, offsetTop);
+    popup.style.top = (offsetTop > 0) ? position.y - offsetTop - 25 + 'px' : position.y + 5 + 'px';
+    popup.style.left = (offsetRight > 0) ? position.x - offsetRight - 25 + 'px' : position.x + 5 + 'px';
 
-    // if (position.y > mapWrapper.offsetHeight / 2) {
-    //     popup.style.top = position.y - popup.offsetHeight - 5 + 'px';
-    //     map.setGlobalPixelCenter([positionCenter[0] - popup.offsetWidth - 5, positionCenter[1] + popup.offsetHeight + 5]);
-    // } else {
-    //     popup.style.top = position.y + 5 + 'px';
-    //     map.setGlobalPixelCenter([positionCenter[0], positionCenter[1] - popup.offsetHeight - 5]);
-    // }
-
+    map.setGlobalPixelCenter([newPositionX, newPositionY]);
     popup.classList.add('popup--visible');
-
-
 
     return true;
 }
@@ -242,6 +231,11 @@ ymaps.ready(() => {
                 x: e.clientX,
                 y: e.clientY
             }
+            const key = deleteCharacters(e.target.innerText);
+            const dataItem = placemarksStorage.getItem(key);
+
+            coords = dataItem.reviews[0].coords;
+            address = e.target.innerText;
 
             // console.log(position);
             clusterer.balloon.close();
