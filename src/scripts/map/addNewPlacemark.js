@@ -1,9 +1,9 @@
-export const addNewPlacemark = (coords, address, review = {}) => {
+export const addNewPlacemark = (coords, address, review = {}, date) => {
     let placemark = new ymaps.Placemark(coords, {
         balloonContentHeader: address,
-        balloonContentBody: `Имя: ${review.firstName} Фамилия: ${review.secondName} Отзыв: ${review.review}`,
-        balloonContentFooter: 'Подвал',
-        hintContent: 'footer',
+        balloonContentBody: `${review.firstName} ${review.secondName} :  ${review.review}`,
+        balloonContentFooter: date,
+        hintContent: address,
     });
 
     return placemark;

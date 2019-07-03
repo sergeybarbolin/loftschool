@@ -8,6 +8,8 @@ import { geocoder } from './scripts/map/geocoder.js';
 import { renderReviews } from './scripts/popup/renderReviews.js';
 import { displayPopup } from './scripts/popup/displayPopup.js';
 
+import moment from 'moment';
+
 const init = () => {
     const map = createMap();
     const clusterer = createClusterer();
@@ -19,8 +21,8 @@ const init = () => {
 
     map.geoObjects.add(clusterer);
 
-    placemarksStorage.forAll((coords, address, review) => {
-        const placemark = addNewPlacemark(coords, address, review);
+    placemarksStorage.forAll((coords, address, review, date) => {
+        const placemark = addNewPlacemark(coords, address, review, date);
         
         clusterer.add(placemark);
     });
@@ -39,8 +41,8 @@ const init = () => {
         if (elementName === 'geoObject') {
             e.preventDefault();
             coords = e.get('coords');
-            displayPopup(popup, mapWrapper, position, map);
             renderReviews(popup, address);
+            displayPopup(popup, mapWrapper, position, map);
 
         } else if (elementName === 'cluster') {
             popup.classList.remove('popup--visible');
@@ -60,13 +62,17 @@ const init = () => {
         geocoder(coords)
             .then(response => {
                 address = response;
-                displayPopup(popup, mapWrapper, position, map);
                 renderReviews(popup, address);
-            })
-            .catch(() => {
-                throw new Error('Ошибка при получении данных...')
+                displayPopup(popup, mapWrapper, position, map);
             })
         
+    });
+    
+    map.events.add('mousedown', () => {
+        if (popup.classList.contains('popup--visible')) {
+            popup.classList.remove('popup--visible');
+        }
+        return;
     });
 
     mapWrapper.addEventListener('click', e => {
@@ -83,24 +89,29 @@ const init = () => {
             coords = dataItem.reviews[0].coords;
             address = e.target.innerText;
 
-            console.log(coords, address);
             clusterer.balloon.close();
-            displayPopup(popup, mapWrapper, position, map);
             renderReviews(popup, e.target.innerText);
+            displayPopup(popup, mapWrapper, position, map);
         }
-        
+        return;
     });
 
     popup.addEventListener('click', e => {
-        const formData = formHandler('.form');
-
+    
         if (e.target.getAttribute('name') === 'send') {
-            const placemark = addNewPlacemark(coords, address, formData);
+            const formData = formHandler('.form');
+            const date = moment().format('DD.MM.YYYY') + ' ' + moment().format('h:mm a');
+            const placemark = addNewPlacemark(coords, address, formData, date);
 
             clusterer.add(placemark);
-            placemarksStorage.add(coords, address, formData);
+            placemarksStorage.add(coords, address, formData, date);
             renderReviews(popup, address);
         }
+
+        if (e.target.classList.contains('close')) {
+            popup.classList.remove('popup--visible');
+        }
+        return;
         
     })
 }
